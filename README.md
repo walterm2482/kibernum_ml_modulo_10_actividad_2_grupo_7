@@ -1,72 +1,85 @@
-# Actividad Módulo 10 - Sesión 2  
+# Actividad Módulo 10 · Sesión 2
 **Contenerización de una API ML con Docker**
 
-Este proyecto entrena un modelo de **Regresión Logística** sobre el dataset *Breast Cancer* de `scikit-learn`, lo expone mediante una **API Flask**, y lo contenedoriza en **Docker**.  
+Modelo: Regresión Logística sobre *Breast Cancer* (`scikit-learn`).  
+API: Flask servida con Gunicorn.  
+Entrega: código, imagen Docker y pruebas con `curl`.
 
 ---
 
-## 📂 Archivos incluidos
-- `train_model.py` → Script de entrenamiento que genera `modelo.pkl`.  
-- `app.py` → API Flask con endpoints de prueba y predicción.  
-- `logger_utils.py` → Configuración de logging para entrenamiento y API.  
-- `requirements.txt` → Dependencias de Python.  
-- `Dockerfile` → Imagen de Docker lista para ejecutar la API.  
-- `modelo.pkl` → Modelo entrenado.  
+## 📁 Estructura
+```
+.
+├─ app.py
+├─ train_model.py
+├─ logger_utils.py
+├─ modelo.pkl
+├─ requirements.txt
+├─ Dockerfile
+├─ README.md
+├─ logs/              # opcional, no subir
+├─ venv/              # opcional, no subir
+└─ __pycache__/       # no subir
+```
 
 ---
 
 ## ⚙️ Requisitos
-- Python 3.11+ (para entrenamiento local)  
-- Docker (para construir y ejecutar la API en contenedor)  
+- Python 3.11+ (para entrenar local)
+- Docker (para construir/ejecutar la API)
 
 ---
 
 ## 🚀 Entrenamiento local
-1. Crear y activar entorno virtual (opcional):
-   ```bash
-   python -m venv venv
-   source venv/bin/activate   # Linux/Mac
-   .\venv\Scripts\activate    # Windows
-   ```
+```bash
+python -m venv venv
+source venv/bin/activate          # Linux/Mac
+.env\Scriptsctivate           # Windows
 
-2. Instalar dependencias:
-   ```bash
-   pip install -r requirements.txt
-   ```
+pip install -r requirements.txt
+python train_model.py             # genera modelo.pkl
+```
 
-3. Entrenar modelo y generar `modelo.pkl`:
-   ```bash
-   python train_model.py
-   ```
+> Evidencia:  
+> ![Entrenamiento](imgs/01_train.png)
 
 ---
 
-## 🐳 Construir imagen Docker
+## 🐳 Construcción de la imagen
 ```bash
 docker build -t ml-api .
 ```
 
+> Evidencia:  
+> ![Build](imgs/02_build.png)
+
 ---
 
-## ▶️ Ejecutar contenedor
+## ▶️ Ejecución del contenedor
 ```bash
 docker run --rm -p 5000:5000 -e LOG_LEVEL=INFO ml-api
 ```
 
+> Evidencia:  
+> ![Run](imgs/03_run.png)
+
 ---
 
-## 🔎 Probar API
-### Endpoint raíz (bienvenida y metadatos)
+## 🔎 Pruebas de la API
+### 1) Bienvenida y metadatos
 ```bash
 curl http://127.0.0.1:5000/
 ```
 
-### Predicción con un vector de 30 valores
+> Evidencia:  
+> ![GET root](imgs/04_get_root.png)
+
+### 2) Predicción
 ```bash
 curl -s -X POST http://127.0.0.1:5000/predict   -H "Content-Type: application/json"   -d '{"input":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}'
 ```
 
-#### Respuesta esperada:
+Respuesta esperada:
 ```json
 {
   "classes": ["malignant", "benign"],
@@ -75,9 +88,22 @@ curl -s -X POST http://127.0.0.1:5000/predict   -H "Content-Type: application/js
 }
 ```
 
+> Evidencia:  
+> ![POST predict](imgs/05_post_predict.png)
+
 ---
 
-## 📋 Notas
-- No incluyas `venv/` en el repositorio (`.gitignore` recomendado).  
-- `gunicorn` se usa como servidor de producción dentro del contenedor.  
-- Logs se almacenan en la carpeta `logs/` (puedes mapearla con `-v` en `docker run`).  
+## 📌 Notas
+- No versionar `venv/`, `logs/` ni `__pycache__/`. Usa `.gitignore`.
+- En contenedor se usa Gunicorn.
+- Puedes mapear logs al host:
+  ```bash
+  docker run --rm -p 5000:5000 -e LOG_LEVEL=INFO -v "$PWD/logs:/app/logs" ml-api
+  ```
+
+---
+
+## ✅ Checklist de entrega
+- [ ] `train_model.py`, `app.py`, `logger_utils.py`
+- [ ] `modelo.pkl`, `requirements.txt`, `Dockerfile`, `README.md`
+- [ ] Capturas: entrenamiento, build, run, GET `/`, POST `/predict`
